@@ -1,21 +1,28 @@
 package model
 
-import "gopkg.in/mgo.v2"
+import (
+	"fmt"
 
-func ConnectUser() {
+	"gopkg.in/mgo.v2"
+)
+
+func ConnectUser() *mgo.Collection {
 	session, err := mgo.Dial("127.0.0.1:27017")
 	if err != nil {
 		panic(err)
 	}
 	db := session.DB("tyr-project")
 	c := db.C("user")
+	fmt.Println(c)
+	return c
 }
 
-func ConnectList() {
+func ConnectList() *mgo.Collection {
 	session, err := mgo.Dial("127.0.0.1:27017")
 	if err != nil {
 		panic(err)
 	}
 	db := session.DB("tyr-project")
 	c := db.C("list")
+	return c
 }

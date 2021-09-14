@@ -1,5 +1,7 @@
 package main
 
+import "tyr-project/view"
+
 func main() {
-	Register("test", "test", "test")
+	view.StartServer()
 }

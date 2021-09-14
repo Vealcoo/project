@@ -6,10 +6,14 @@ import (
 	"tyr-project/model"
 )
 
-func Insert(id string, title string, context string, start time.Time, end time.Time, timeup bool) {
-	ConnectList()
-	err = c.Insert(NewListInfo(id, title, context, start, end, timeup))
+func Insert(id string, title string, context string, start string, end string, timeup bool) error {
+	starttime, _ := time.Parse(time.RFC3339, start)
+	endtime, _ := time.Parse(time.RFC3339, end)
+	c := model.ConnectList()
+	err := c.Insert(model.NewListInfo(id, title, context, starttime, endtime, timeup))
+	fmt.Println(c)
 	if err != nil {
-		fmt.Println(err)
+		fmt.Println("err")
 	}
+	return nil
 }
