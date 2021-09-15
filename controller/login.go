@@ -8,12 +8,12 @@ import (
 )
 
 func Login(id string, pw string) bool {
-	var auth bool = true
+	var auth bool = false
 	c := model.ConnectUser()
 	err := c.Find(bson.M{"userid": id, "userpw": pw})
 	if err != nil {
 		fmt.Println(err)
-		auth = false
+		auth = true
 	}
 	return auth
 }

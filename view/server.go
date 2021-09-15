@@ -16,22 +16,17 @@ func WebPage(l *gin.Context) {
 	l.HTML(http.StatusOK, "index.html", nil)
 }
 
-func sessionget(id string) {
-	var w http.ResponseWriter
-	var r *http.Request
-	session, _ := store.Get(r, id)
-	err := session.Save(r, w)
-	if err != nil {
-		fmt.Println(err)
-	}
-}
-
 func LoginAuth(l *gin.Context) {
 	id, _ := l.GetPostForm("userid")
 	pw, _ := l.GetPostForm("userpw")
 	auth := controller.Login(id, pw)
 	if auth {
-		sessionget(id)
+		fmt.Println("get session")
+		session, _ := store.Get(l.Request, id)
+		err := session.Save(l.Request, l.Writer)
+		if err != nil {
+			fmt.Println(err)
+		}
 	}
 }
 
@@ -80,9 +75,39 @@ func ListUpdate(l *gin.Context) {
 	}
 }
 
+// func test(w http.ResponseWriter, r *http.Request) {
+
+// }
+
+// func LoginAuth(w http.ResponseWriter, r *http.Request) {
+// 	id := r.FormValue("userid")
+// 	pw := r.FormValue("userpw")
+// 	auth := controller.Login(id, pw)
+// 	if auth {
+// 		sessionget(id)
+// 	}
+// }
+
+// func RegisterAuth(w http.ResponseWriter, r *http.Request) {
+// 	id := r.FormValue("userid")
+// 	pw := r.FormValue("userpw")
+// 	name := r.FormValue(("username"))
+// 	err := controller.Register(id, pw, name)
+// 	if err != nil {
+// 		fmt.Println(err)
+// 	}
+// }
+
 func StartServer() {
+	// http.HandleFunc("/", test)
+	// http.HandleFunc("/login", LoginAuth)
+	// http.HandleFunc("/register", RegisterAuth)
+	// err := http.ListenAndServe(":9090", nil) //設定監聽的埠
+	// if err != nil {
+	// 	log.Fatal("ListenAndServe: ", err)
+	// }
 	server := gin.Default()
-	server.LoadHTMLGlob("template/html/*")
+	server.LoadHTMLGlob("view/template/html/*")
 	//設定靜態資源的讀取
 	// server.Static("/assets", "./template/assets")
 	server.GET("/", WebPage)
@@ -92,5 +117,5 @@ func StartServer() {
 	server.POST("/delete", ListDelete)
 	server.POST("/update", ListUpdate)
 
-	server.Run(":8887")
+	server.Run(":8889")
 }
