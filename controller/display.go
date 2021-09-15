@@ -7,15 +7,15 @@ import (
 	"gopkg.in/mgo.v2/bson"
 )
 
-func Delete(listid string) error {
-	selector := bson.M{"_id": bson.ObjectIdHex(listid)}
+func Display(id string) model.ListInfo {
 	c, err := model.ConnectList()
 	if err != nil {
 		panic(err)
 	}
-	err = c.Remove(selector)
+	result := model.ListInfo{}
+	err = c.Find(bson.M{"userid": id}).One(&result)
 	if err != nil {
 		fmt.Println(err)
 	}
-	return nil
+	return result
 }

@@ -9,10 +9,14 @@ import (
 
 func Login(id string, pw string) bool {
 	var auth bool = false
-	c := model.ConnectUser()
-	err := c.Find(bson.M{"userid": id, "userpw": pw})
+	c, err := model.ConnectUser()
 	if err != nil {
-		fmt.Println(err)
+		panic(err)
+	}
+	result := model.UserInfo{}
+	err = c.Find(bson.M{"userid": id, "userpw": pw}).One(result)
+	fmt.Println(err)
+	if err != nil {
 		auth = true
 	}
 	return auth

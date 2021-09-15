@@ -8,9 +8,12 @@ import (
 )
 
 func Register(id string, pw string, name string) error {
-	c := model.ConnectUser()
+	c, err := model.ConnectUser()
+	if err != nil {
+		panic(err)
+	}
 	result := model.UserInfo{}
-	err := c.Find(bson.M{"userid": id}).One(&result)
+	err = c.Find(bson.M{"userid": id}).One(&result)
 	if err != nil {
 		err = c.Insert(model.NewUserInfo(id, pw, name))
 		if err != nil {
