@@ -3,14 +3,12 @@ package view
 import (
 	"fmt"
 	"net/http"
-	"os"
 	"tyr-project/controller"
 
 	"github.com/gin-gonic/gin"
-	"github.com/gorilla/sessions"
 )
 
-var store = sessions.NewCookieStore([]byte(os.Getenv("SESSION_KEY)")))
+// var store = sessions.NewCookieStore([]byte(os.Getenv("SESSION_KEY)")))
 
 func WebPage(l *gin.Context) {
 	l.HTML(http.StatusOK, "index.html", nil)
@@ -21,13 +19,21 @@ func LoginAuth(l *gin.Context) {
 	pw, _ := l.GetPostForm("userpw")
 	auth := controller.Login(id, pw)
 	if auth {
-		fmt.Println("get session")
-		session, _ := store.Get(l.Request, id)
-		err := session.Save(l.Request, l.Writer)
-		if err != nil {
-			fmt.Println(err)
-		}
+		fmt.Println("set session")
+		// store.MaxAge(1000)
+		// session, _ := store.Get(l.Request, id)
+		// session.Values["auth"] = true
+		// err := session.Save(l.Request, l.Writer)
+		// if err != nil {
+		// 	http.Error(l.Writer, err.Error(), http.StatusInternalServerError)
+		// }
+		controller.SetSession(id, l.Writer)
 	}
+}
+
+func LogoutAuth(l *gin.Context) {
+	fmt.Println("session clear")
+	controller.ClearSession(l.Writer)
 }
 
 func RegisterAuth(l *gin.Context) {
@@ -112,6 +118,7 @@ func StartServer() {
 	// server.Static("/assets", "./template/assets")
 	server.GET("/", WebPage)
 	server.POST("/login", LoginAuth)
+	server.POST("/logout", LogoutAuth)
 	server.POST("/register", RegisterAuth)
 	server.POST("/insert", ListInsert)
 	server.POST("/delete", ListDelete)
