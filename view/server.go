@@ -113,8 +113,9 @@ func ListUpdate(l *gin.Context) {
 }
 
 func ListDisplay(l *gin.Context) {
-	// id, _ := l.GetPostForm("userid")
-	// listinfo := controller.Display(id)
+	id := l.Query("userid")
+	listinfo := controller.Display(id)
+	l.JSON(http.StatusOK, listinfo)
 }
 
 // func test(w http.ResponseWriter, r *http.Request) {
@@ -159,7 +160,7 @@ func StartServer() {
 	server.POST("/api/insert", ListInsert)
 	server.POST("/api/delete", ListDelete)
 	server.POST("/api/update", ListUpdate)
-	server.POST("/api/dispaly", ListDisplay)
+	server.POST("/api/display", ListDisplay)
 
 	server.Run(":8887")
 }

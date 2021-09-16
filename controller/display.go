@@ -7,13 +7,13 @@ import (
 	"gopkg.in/mgo.v2/bson"
 )
 
-func Display(id string) model.ListInfo {
+func Display(id string) []model.ListInfo {
 	c, err := model.ConnectList()
 	if err != nil {
 		panic(err)
 	}
-	result := model.ListInfo{}
-	err = c.Find(bson.M{"userid": id}).One(&result)
+	var result []model.ListInfo
+	err = c.Find(bson.M{"userid": id}).All(&result)
 	if err != nil {
 		fmt.Println(err)
 	}
