@@ -40,7 +40,6 @@ func LoginAuth(l *gin.Context) {
 }
 
 func LogoutAuth(l *gin.Context) {
-	fmt.Println("session clear")
 	controller.ClearSession(l.Writer)
 }
 
@@ -48,16 +47,24 @@ func RegisterAuth(l *gin.Context) {
 	id := l.Query("userid")
 	pw := l.Query("userpw")
 	name := l.Query("username")
-	err := controller.Register(id, pw, name)
+	err, auth := controller.Register(id, pw, name)
 	if err != nil {
 		fmt.Println("register fail")
-
 	}
-	l.JSON(http.StatusOK, gin.H{
-		"userid":   id,
-		"username": name,
-		"message":  "register success",
-	})
+	if auth {
+		l.JSON(http.StatusOK, gin.H{
+			"userid":   id,
+			"username": name,
+			"message":  "register success!",
+		})
+	}
+	if !auth {
+		l.JSON(http.StatusOK, gin.H{
+			"userid":   id,
+			"username": name,
+			"message":  "id exist!",
+		})
+	}
 }
 
 func ListInsert(l *gin.Context) {

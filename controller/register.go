@@ -7,7 +7,8 @@ import (
 	"gopkg.in/mgo.v2/bson"
 )
 
-func Register(id string, pw string, name string) error {
+func Register(id string, pw string, name string) (error, bool) {
+	var auth bool
 	c, err := model.ConnectUser()
 	if err != nil {
 		panic(err)
@@ -16,11 +17,12 @@ func Register(id string, pw string, name string) error {
 	err = c.Find(bson.M{"userid": id}).One(&result)
 	if err != nil {
 		err = c.Insert(model.NewUserInfo(id, pw, name))
+		auth = true
 		if err != nil {
 			fmt.Println(err)
 		}
 	} else {
-		fmt.Println("id exist")
+		auth = false
 	}
-	return nil
+	return err, auth
 }
