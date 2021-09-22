@@ -13,11 +13,8 @@ func WebPage(l *gin.Context) {
 }
 
 func LoginAuth(l *gin.Context) {
-	info := controller.LoginInfo{}
-	l.BindJSON(&info)
-
-	id := info.UserId
-	pw := info.UserPw
+	id := l.Query("userid")
+	pw := l.Query("userpw")
 	auth := controller.Login(id, pw)
 	if auth {
 		token, _ := controller.SetToken(id)
@@ -45,7 +42,7 @@ func RegisterAuth(l *gin.Context) {
 	id := info.UserId
 	pw := info.UserPw
 	name := info.UserName
-	err, auth := controller.Register(id, pw, name)
+	auth, err := controller.Register(id, pw, name)
 	if err != nil {
 		fmt.Println("register fail")
 	}
@@ -67,12 +64,14 @@ func RegisterAuth(l *gin.Context) {
 
 func ListInsert(l *gin.Context) {
 	token := l.Request.Header.Get("Authorization")
-	id := l.Query("userid")
-	title := l.Query("listtitle")
-	context := l.Query("listcontext")
-	start := l.Query("starttime")
-	end := l.Query("endtime")
-	fmt.Println(id, title, context, start, end)
+	info := controller.InsertListInfo{}
+	l.BindJSON(&info)
+	id := info.UserId
+	title := info.ListTitle
+	context := info.ListContext
+	start := info.StartTime
+	end := info.EndTime
+	// fmt.Println(id, title, context, start, end)
 	timeup := false
 	if controller.AuthJWT(token, id) {
 		err := controller.Insert(id, title, context, start, end, timeup)
@@ -139,7 +138,7 @@ func ListUpdate(l *gin.Context) {
 			"context":   context,
 			"strattime": start,
 			"endtime":   end,
-			"message":   "list build success",
+			"message":   "list update success",
 		})
 	}
 	if !controller.AuthJWT(token, id) {
@@ -153,9 +152,7 @@ func ListUpdate(l *gin.Context) {
 
 func ListDisplay(l *gin.Context) {
 	token := l.Request.Header.Get("Authorization")
-	info := controller.DisplayInfo{}
-	l.BindJSON(&info)
-	id := info.UserId
+	id := l.Query("userid")
 	if controller.AuthJWT(token, id) {
 		listinfo := controller.Display(id)
 		l.JSON(http.StatusOK, listinfo)
@@ -170,19 +167,21 @@ func ListDisplay(l *gin.Context) {
 }
 
 func StartServer() {
+	router := gin.Default()
 
+	router.Run()
 	server := gin.Default()
 	server.LoadHTMLGlob("view/template/html/*")
 	//設定靜態資源的讀取
 	// server.Static("/assets", "./template/assets")
 	server.GET("/", WebPage)
-	server.POST("/api/member", LoginAuth)
-	server.GET("/api/member", RegisterAuth)
+	server.GET("/api/member", LoginAuth)
+	server.POST("/api/member", RegisterAuth)
 
-	server.GET("/api/member/todo", ListInsert)
-	server.DELETE("/api/member/todo", ListDelete)
-	server.PUT("/api/member/todo", ListUpdate)
-	server.POST("/api/member/todo", ListDisplay)
+	server.POST("/api/member/todo", ListInsert)
+	server.DELETE("/api/member/todo/:id", ListDelete)
+	server.PUT("/api/member/todo/:id", ListUpdate)
+	server.GET("/api/member/todo", ListDisplay)
 
 	server.Run(":8887")
 }

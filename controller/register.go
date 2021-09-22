@@ -13,7 +13,7 @@ type RegisterInfo struct {
 	UserName string `json:"username"`
 }
 
-func Register(id string, pw string, name string) (error, bool) {
+func Register(id string, pw string, name string) (bool, error) {
 	var auth bool
 	c, err := model.ConnectUser()
 	if err != nil {
@@ -30,5 +30,5 @@ func Register(id string, pw string, name string) (error, bool) {
 	} else {
 		auth = false
 	}
-	return err, auth
+	return auth, err
 }
