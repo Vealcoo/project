@@ -1,7 +1,6 @@
 package controller
 
 import (
-	"fmt"
 	"tyr-project/model"
 
 	"gopkg.in/mgo.v2/bson"
@@ -11,15 +10,15 @@ type DisplayInfo struct {
 	UserId string `json:"userid"`
 }
 
-func Display(id string) []model.ListInfo {
+func Display(id string) ([]model.ListInfo, int) {
+	var result []model.ListInfo
 	c, err := model.ConnectList()
 	if err != nil {
-		panic(err)
+		return result, 1
 	}
-	var result []model.ListInfo
 	err = c.Find(bson.M{"userid": id}).All(&result)
 	if err != nil {
-		fmt.Println(err)
+		return result, 2
 	}
-	return result
+	return result, 0
 }

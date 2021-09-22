@@ -1,7 +1,6 @@
 package controller
 
 import (
-	"fmt"
 	"tyr-project/model"
 
 	"gopkg.in/mgo.v2/bson"
@@ -12,15 +11,18 @@ type DeleteListInfo struct {
 	ListId string `json:"listid"`
 }
 
-func Delete(listid string) error {
+func Delete(listid string) int {
+	if listid == "" {
+		return 1
+	}
 	selector := bson.M{"_id": bson.ObjectIdHex(listid)}
 	c, err := model.ConnectList()
 	if err != nil {
-		panic(err)
+		return 2
 	}
 	err = c.Remove(selector)
 	if err != nil {
-		fmt.Println(err)
+		return 3
 	}
-	return nil
+	return 0
 }
