@@ -7,6 +7,11 @@ import (
 	"gopkg.in/mgo.v2/bson"
 )
 
+type LoginInfo struct {
+	UserId string `json:"userid"`
+	UserPw string `json:"userpw"`
+}
+
 func Login(id string, pw string) bool {
 	var auth bool
 	c, err := model.ConnectUser()

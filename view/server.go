@@ -8,28 +8,23 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-// var store = sessions.NewCookieStore([]byte(os.Getenv("SESSION_KEY)")))
-
 func WebPage(l *gin.Context) {
 	l.HTML(http.StatusOK, "index.html", nil)
 }
 
 func LoginAuth(l *gin.Context) {
-	id := l.Query("userid")
-	pw := l.Query("userpw")
+	info := controller.LoginInfo{}
+	l.BindJSON(&info)
+
+	id := info.UserId
+	pw := info.UserPw
 	auth := controller.Login(id, pw)
 	if auth {
-		// store.MaxAge(1000)
-		// session := store.Get(l.Request, id)
-		// session.Values["auth"] = true
-		// err := session.Save(l.Request, l.Writer)
-		// if err != nil {
-		// 	http.Error(l.Writer, err.Error(), http.StatusInternalServerError)
-		// }
-		controller.SetSession(id, l.Writer)
+		token, _ := controller.SetToken(id)
 		l.JSON(http.StatusOK, gin.H{
 			"userid":  id,
 			"message": "login success",
+			"token":   token,
 		})
 	}
 	if !auth {
@@ -40,13 +35,16 @@ func LoginAuth(l *gin.Context) {
 }
 
 func LogoutAuth(l *gin.Context) {
-	controller.ClearSession(l.Writer)
+
 }
 
 func RegisterAuth(l *gin.Context) {
-	id := l.Query("userid")
-	pw := l.Query("userpw")
-	name := l.Query("username")
+	info := controller.RegisterInfo{}
+	l.BindJSON(&info)
+
+	id := info.UserId
+	pw := info.UserPw
+	name := info.UserName
 	err, auth := controller.Register(id, pw, name)
 	if err != nil {
 		fmt.Println("register fail")
@@ -68,106 +66,123 @@ func RegisterAuth(l *gin.Context) {
 }
 
 func ListInsert(l *gin.Context) {
+	token := l.Request.Header.Get("Authorization")
 	id := l.Query("userid")
 	title := l.Query("listtitle")
 	context := l.Query("listcontext")
 	start := l.Query("starttime")
 	end := l.Query("endtime")
+	fmt.Println(id, title, context, start, end)
 	timeup := false
-	err := controller.Insert(id, title, context, start, end, timeup)
-	if err != nil {
-		fmt.Println(err)
+	if controller.AuthJWT(token, id) {
+		err := controller.Insert(id, title, context, start, end, timeup)
+		if err != nil {
+			fmt.Println(err)
+		}
+		l.JSON(http.StatusOK, gin.H{
+			"userid":  id,
+			"title":   title,
+			"context": context,
+			"message": "list build success",
+		})
 	}
-	l.JSON(http.StatusOK, gin.H{
-		"userid":  id,
-		"title":   title,
-		"context": context,
-		"message": "list build success",
-	})
+	if !controller.AuthJWT(token, id) {
+		l.JSON(http.StatusOK, gin.H{
+			"userid":    id,
+			"usertoken": token,
+			"message":   "token verify fail",
+		})
+	}
 }
 
 func ListDelete(l *gin.Context) {
+	token := l.Request.Header.Get("Authorization")
+	id := l.Query("userid")
 	listid := l.Query("listid")
-	err := controller.Delete(listid)
-	if err != nil {
-		fmt.Println(err)
+	if controller.AuthJWT(token, id) {
+		err := controller.Delete(listid)
+		if err != nil {
+			fmt.Println(err)
+		}
+		l.JSON(http.StatusOK, gin.H{
+			"message": "list remove success",
+		})
 	}
-	l.JSON(http.StatusOK, gin.H{
-		"message": "list remove success",
-	})
+	if !controller.AuthJWT(token, id) {
+		l.JSON(http.StatusOK, gin.H{
+			"userid":    id,
+			"usertoken": token,
+			"message":   "token verify fail",
+		})
+	}
 }
 
 func ListUpdate(l *gin.Context) {
-	listid := l.Query("listid")
-	id := l.Query("userid")
-	title := l.Query("listtitle")
-	context := l.Query("listcontext")
-	start := l.Query("starttime")
-	end := l.Query("endtime")
+	token := l.Request.Header.Get("Authorization")
+	info := controller.UpdateListInfo{}
+	l.BindJSON(&info)
+	listid := info.ListId
+	id := info.UserId
+	title := info.ListTitle
+	context := info.ListContext
+	start := info.StartTime
+	end := info.EndTime
 	timeup := false
-	err := controller.Update(listid, id, title, context, start, end, timeup)
-	if err != nil {
-		fmt.Println("")
+	if controller.AuthJWT(token, id) {
+		err := controller.Update(listid, id, title, context, start, end, timeup)
+		if err != nil {
+			fmt.Println("")
+		}
+		l.JSON(http.StatusOK, gin.H{
+			"userid":    id,
+			"title":     title,
+			"context":   context,
+			"strattime": start,
+			"endtime":   end,
+			"message":   "list build success",
+		})
 	}
-	l.JSON(http.StatusOK, gin.H{
-		"userid":    id,
-		"title":     title,
-		"context":   context,
-		"strattime": start,
-		"endtime":   end,
-		"message":   "list build success",
-	})
+	if !controller.AuthJWT(token, id) {
+		l.JSON(http.StatusOK, gin.H{
+			"userid":    id,
+			"usertoken": token,
+			"message":   "token verify fail",
+		})
+	}
 }
 
 func ListDisplay(l *gin.Context) {
-	id := l.Query("userid")
-	listinfo := controller.Display(id)
-	l.JSON(http.StatusOK, listinfo)
+	token := l.Request.Header.Get("Authorization")
+	info := controller.DisplayInfo{}
+	l.BindJSON(&info)
+	id := info.UserId
+	if controller.AuthJWT(token, id) {
+		listinfo := controller.Display(id)
+		l.JSON(http.StatusOK, listinfo)
+	}
+	if !controller.AuthJWT(token, id) {
+		l.JSON(http.StatusOK, gin.H{
+			"userid":    id,
+			"usertoken": token,
+			"message":   "token verify fail",
+		})
+	}
 }
 
-// func test(w http.ResponseWriter, r *http.Request) {
-
-// }
-
-// func LoginAuth(w http.ResponseWriter, r *http.Request) {
-// 	id := r.FormValue("userid")
-// 	pw := r.FormValue("userpw")
-// 	auth := controller.Login(id, pw)
-// 	if auth {
-// 		sessionget(id)
-// 	}
-// }
-
-// func RegisterAuth(w http.ResponseWriter, r *http.Request) {
-// 	id := r.FormValue("userid")
-// 	pw := r.FormValue("userpw")
-// 	name := r.FormValue(("username"))
-// 	err := controller.Register(id, pw, name)
-// 	if err != nil {
-// 		fmt.Println(err)
-// 	}
-// }
-
 func StartServer() {
-	// http.HandleFunc("/", test)
-	// http.HandleFunc("/login", LoginAuth)
-	// http.HandleFunc("/register", RegisterAuth)
-	// err := http.ListenAndServe(":9090", nil) //設定監聽的埠
-	// if err != nil {
-	// 	log.Fatal("ListenAndServe: ", err)
-	// }
+
 	server := gin.Default()
 	server.LoadHTMLGlob("view/template/html/*")
 	//設定靜態資源的讀取
 	// server.Static("/assets", "./template/assets")
 	server.GET("/", WebPage)
-	server.POST("/api/login", LoginAuth)
-	server.POST("/api/logout", LogoutAuth)
-	server.POST("/api/register", RegisterAuth)
-	server.POST("/api/insert", ListInsert)
-	server.POST("/api/delete", ListDelete)
-	server.POST("/api/update", ListUpdate)
-	server.POST("/api/display", ListDisplay)
+	server.POST("/api/member", LoginAuth)
+	server.GET("/api/member", RegisterAuth)
+
+	server.GET("/api/member/todo", ListInsert)
+	server.DELETE("/api/member/todo", ListDelete)
+	server.PUT("/api/member/todo", ListUpdate)
+	server.POST("/api/member/todo", ListDisplay)
 
 	server.Run(":8887")
 }

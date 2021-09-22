@@ -7,6 +7,10 @@ import (
 	"gopkg.in/mgo.v2/bson"
 )
 
+type DisplayInfo struct {
+	UserId string `json:"userid"`
+}
+
 func Display(id string) []model.ListInfo {
 	c, err := model.ConnectList()
 	if err != nil {

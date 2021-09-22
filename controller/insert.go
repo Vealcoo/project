@@ -6,6 +6,14 @@ import (
 	"tyr-project/model"
 )
 
+type InsertListInfo struct {
+	UserId      string `json:"userid"`
+	ListTitle   string `json:"listtitle"`
+	ListContext string `json:"listcontext"`
+	StartTime   string `json:"starttime"`
+	EndTime     string `json:"endtime"`
+}
+
 func Insert(id string, title string, context string, start string, end string, timeup bool) error {
 	starttime, _ := time.Parse(time.RFC3339, start)
 	endtime, _ := time.Parse(time.RFC3339, end)

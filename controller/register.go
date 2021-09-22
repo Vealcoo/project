@@ -7,6 +7,12 @@ import (
 	"gopkg.in/mgo.v2/bson"
 )
 
+type RegisterInfo struct {
+	UserId   string `json:"userid"`
+	UserPw   string `json:"userpw"`
+	UserName string `json:"username"`
+}
+
 func Register(id string, pw string, name string) (error, bool) {
 	var auth bool
 	c, err := model.ConnectUser()
