@@ -1,7 +1,6 @@
 package view
 
 import (
-	"fmt"
 	"net/http"
 	"tyr-project/controller"
 
@@ -15,8 +14,8 @@ func WebPage(l *gin.Context) {
 func LoginAuth(l *gin.Context) {
 	id := l.Query("userid")
 	pw := l.Query("userpw")
-	auth := controller.Login(id, pw)
-	if auth {
+	i := controller.Login(id, pw)
+	if i == 0 {
 		token, _ := controller.SetToken(id)
 		l.JSON(http.StatusOK, gin.H{
 			"userid":  id,
@@ -24,7 +23,12 @@ func LoginAuth(l *gin.Context) {
 			"token":   token,
 		})
 	}
-	if !auth {
+	if i == 1 {
+		l.JSON(http.StatusOK, gin.H{
+			"message": "id or pw is nil",
+		})
+	}
+	if i == 2 {
 		l.JSON(http.StatusOK, gin.H{
 			"message": "login fail",
 		})
@@ -42,18 +46,30 @@ func RegisterAuth(l *gin.Context) {
 	id := info.UserId
 	pw := info.UserPw
 	name := info.UserName
-	auth, err := controller.Register(id, pw, name)
-	if err != nil {
-		fmt.Println("register fail")
-	}
-	if auth {
+	i := controller.Register(id, pw, name)
+	if i == 0 {
 		l.JSON(http.StatusOK, gin.H{
 			"userid":   id,
 			"username": name,
 			"message":  "register success!",
 		})
 	}
-	if !auth {
+	if i == 1 {
+		l.JSON(http.StatusOK, gin.H{
+			"message": "input has nil!",
+		})
+	}
+	if i == 2 {
+		l.JSON(http.StatusOK, gin.H{
+			"message": "database connect fail!",
+		})
+	}
+	if i == 3 {
+		l.JSON(http.StatusOK, gin.H{
+			"message": "database insert fail!",
+		})
+	}
+	if i == 4 {
 		l.JSON(http.StatusOK, gin.H{
 			"userid":   id,
 			"username": name,
@@ -156,18 +172,32 @@ func ListUpdate(l *gin.Context) {
 	end := info.EndTime
 	timeup := false
 	if controller.AuthJWT(token, id) {
-		err := controller.Update(listid, id, title, context, start, end, timeup)
-		if err != nil {
-			fmt.Println("")
+		i := controller.Update(listid, id, title, context, start, end, timeup)
+		if i == 0 {
+			l.JSON(http.StatusOK, gin.H{
+				"userid":    id,
+				"title":     title,
+				"context":   context,
+				"strattime": start,
+				"endtime":   end,
+				"message":   "list update success",
+			})
 		}
-		l.JSON(http.StatusOK, gin.H{
-			"userid":    id,
-			"title":     title,
-			"context":   context,
-			"strattime": start,
-			"endtime":   end,
-			"message":   "list update success",
-		})
+		if i == 1 {
+			l.JSON(http.StatusOK, gin.H{
+				"message": "input has nil!",
+			})
+		}
+		if i == 2 {
+			l.JSON(http.StatusOK, gin.H{
+				"message": "database connect fail!",
+			})
+		}
+		if i == 3 {
+			l.JSON(http.StatusOK, gin.H{
+				"message": "database update fail!",
+			})
+		}
 	}
 	if !controller.AuthJWT(token, id) {
 		l.JSON(http.StatusOK, gin.H{

@@ -12,20 +12,19 @@ type LoginInfo struct {
 	UserPw string `json:"userpw"`
 }
 
-func Login(id string, pw string) bool {
-	var auth bool
+func Login(id string, pw string) int {
 	c, err := model.ConnectUser()
 	if err != nil {
 		panic(err)
+	}
+	if id == "" || pw == "" {
+		return 1
 	}
 	result := model.UserInfo{}
 	err = c.Find(bson.M{"userid": id, "userpw": pw}).One(&result)
 	fmt.Println(result)
 	if err != nil {
-		auth = false
+		return 2
 	}
-	if err == nil {
-		auth = true
-	}
-	return auth
+	return 0
 }

@@ -1,7 +1,6 @@
 package controller
 
 import (
-	"fmt"
 	"time"
 	"tyr-project/model"
 
@@ -17,18 +16,21 @@ type UpdateListInfo struct {
 	EndTime     string `json:"endtime"`
 }
 
-func Update(listid string, id string, title string, context string, start string, end string, timeup bool) error {
+func Update(listid string, id string, title string, context string, start string, end string, timeup bool) int {
+	if id == "" || title == "" || context == "" || start == "" || end == "" {
+		return 1
+	}
 	starttime, _ := time.Parse(time.RFC3339, start)
 	endtime, _ := time.Parse(time.RFC3339, end)
 	c, err := model.ConnectList()
 	if err != nil {
-		panic(err)
+		return 2
 	}
 	selector := bson.M{"_id": bson.ObjectIdHex(listid)}
 	new := model.NewListInfo(id, title, context, starttime, endtime, timeup)
 	err = c.Update(selector, new)
 	if err != nil {
-		fmt.Println(err)
+		return 3
 	}
-	return nil
+	return 0
 }

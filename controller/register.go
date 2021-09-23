@@ -1,7 +1,6 @@
 package controller
 
 import (
-	"fmt"
 	"tyr-project/model"
 
 	"gopkg.in/mgo.v2/bson"
@@ -13,22 +12,23 @@ type RegisterInfo struct {
 	UserName string `json:"username"`
 }
 
-func Register(id string, pw string, name string) (bool, error) {
-	var auth bool
+func Register(id string, pw string, name string) int {
+	if id == "" || pw == "" || name == "" {
+		return 1
+	}
 	c, err := model.ConnectUser()
 	if err != nil {
-		panic(err)
+		return 2
 	}
 	result := model.UserInfo{}
 	err = c.Find(bson.M{"userid": id}).One(&result)
 	if err != nil {
 		err = c.Insert(model.NewUserInfo(id, pw, name))
-		auth = true
 		if err != nil {
-			fmt.Println(err)
+			return 3
 		}
+		return 0
 	} else {
-		auth = false
+		return 4
 	}
-	return auth, err
 }
